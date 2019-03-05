@@ -25,6 +25,8 @@ module.exports = function (source) {
     // Tag regex option to filter what to attach sourcemaps for.
     if (tagWhitelist && !match[0].match(tagWhitelist)) { continue; }
 
+    if (match[0].indexOf('<require') !== -1) { continue; }
+
     // Use integer to give potential hot reloaders less work.
     const updatedTag = match[0].replace(/>$/, ` data-sm="${sourcemapId++}">`);
     source = source.replace(match[0], updatedTag);
