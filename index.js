@@ -5,7 +5,7 @@ const path = require('path');
 const endRequireRe = /<!-- <\/require> -->/g;
 const requireRe = /<!-- <require path="(.*?)"> -->/g;
 const sourcemapIdRe = /data-sm="(.*?)"/;
-const tagRe = /<.*?>/g;
+const tagRe = /<\w.*?>/g;
 
 module.exports = function (source) {
   // Options.
