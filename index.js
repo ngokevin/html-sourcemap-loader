@@ -15,32 +15,19 @@ module.exports = function (source) {
   const tagWhitelist = options.tag || null;
 
   const sourcemap = {};
-
-  // Attach sourcemap IDs.
   let sourcemapId = 0;
-  let match;
-  while (match = tagRe.exec(source)) {
-    if (match[0].startsWith('</') || match[0].startsWith('< /')) { continue; }
-
-    // Tag regex option to filter what to attach sourcemaps for.
-    if (tagWhitelist && !match[0].match(tagWhitelist)) { continue; }
-
-    if (match[0].indexOf('<require') !== -1) { continue; }
-
-    // Use integer to give potential hot reloaders less work.
-    const updatedTag = match[0].replace(/>$/, ` data-sm="${sourcemapId++}">`);
-    source = source.replace(match[0], updatedTag);
-  }
 
   // Walk though file and see what file where this tag is defined.
-  let fileStack = [this.resourcePath];
+  let fileStack = [{file: this.resourcePath, lineNumber: 0, index: 0}];
   const lines = source.split('\n');
-  lines.forEach((line, lineNumber) => {
+  const newLines = [];
+  lines.forEach(line => {
+    const originalLine = line;
     const requireMatch = requireRe.exec(line);
 
     // Inside another file.
     if (requireMatch) {
-      fileStack.unshift(requireMatch[1]);
+      fileStack.unshift({file: requireMatch[1], lineNumber: 0, index: 0});
       return;
     }
 
@@ -50,26 +37,42 @@ module.exports = function (source) {
       return;
     }
 
-    let elementIndex = -1;
-    let tagMatch;
-    while (tagMatch = tagRe.exec(line)) {
-      elementIndex++;
-      const sourcemapIdMatch = tagMatch[0].match(sourcemapIdRe);
-      if (!sourcemapIdMatch) { continue; }
-      sourcemap[sourcemapIdMatch[1]] = {
-        file: fileStack[0],
-        line: lineNumber,
-        column: line.indexOf(tagMatch[0]),
-        elementIndex: elementIndex
-      };
+    // Walk through tags of the line.
+    let match;
+    while (match = tagRe.exec(line)) {
+      if (match[0].indexOf('<require') !== -1 ||
+          match[0].indexOf('data-sm=') !== -1) { continue; }
+
+      // Attach sourcemap ID.
+      // Tag regex option to filter what to attach sourcemaps for.
+      if (!tagWhitelist || match[0].match(tagWhitelist)) {
+        let id = sourcemapId++;
+
+        // Use integer to give potential hot reloaders less work.
+        const updatedTag = match[0].replace(/>$/, ` data-sm="${id}">`);
+
+        sourcemap[id] = {
+          file: fileStack[0].file,
+          line: fileStack[0].lineNumber,
+          column: line.indexOf(match[0]),
+          length: match[0].length,
+          index: fileStack[0].index + match.index
+        };
+
+        line = line.replace(match[0], updatedTag);
+      }
     }
+
+    fileStack[0].index += originalLine.length;
+    fileStack[0].lineNumber++;
+    newLines.push(line);
   });
 
   fs.writeFileSync(path.resolve(outPath, '.html.map.json'),
                    JSON.stringify(sourcemap));
   source = source.replace(requireRe, '');
   source = source.replace(endRequireRe, '');
-  return source;
+  return newLines.join('\n');
 };
 
 function randStr () {
