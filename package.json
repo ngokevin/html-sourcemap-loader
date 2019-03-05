@@ -1,6 +1,6 @@
 {
   "name": "html-sourcemap-loader",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Webpack loader that creates a source map for HTML via data attributes and a JSON file.",
   "main": "index.js",
   "repository": {
