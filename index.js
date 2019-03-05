@@ -34,7 +34,7 @@ module.exports = function (source) {
   let fileStack = [this.resourcePath];
   const lines = source.split('\n');
   lines.forEach((line, lineNumber) => {
-    const requireMatch = line.match(requireRe);
+    const requireMatch = requireRe.exec(line);
 
     // Inside another file.
     if (requireMatch) {
