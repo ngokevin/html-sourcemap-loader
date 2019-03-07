@@ -1,6 +1,6 @@
 {
   "name": "html-sourcemap-loader",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Webpack loader that creates a source map for HTML via data attributes and a JSON file.",
   "main": "index.js",
   "repository": {
@@ -14,6 +14,7 @@
   },
   "homepage": "https://github.com/ngokevin/html-sourcemap-loader#readme",
   "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
     "loader-utils": "^1.2.3"
   },
   "devDependencies": {
