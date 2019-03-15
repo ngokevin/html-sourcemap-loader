@@ -40,6 +40,7 @@ module.exports = function (source) {
       }
 
       if (el.type !== 'tag') { return; }
+      if (el.name === 'require') { return; }
 
       const id = sourcemapId++;
       $(el).attr('data-sm', id);
